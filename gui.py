@@ -3,13 +3,11 @@ import time
 from tkinter import filedialog, simpledialog
 import cv2
 import numpy as np
-
 from tkSimpleStatusbar import *
+import os, sys, subprocess
 
 master = Tk() # membuat window
-master.iconbitmap("icon/icon.ico") # merubah icon
-master.geometry('326x65') #merubah ukuran window
-master.title("Face Recognition 1.1")
+master.title("Face Recognition 1.2")
 master.resizable(0,0) # me-non aktifkan maximize
 
 #------------------ MEMBUAT STATUS BAR DI MULAI PROGRAM ------------------#
@@ -21,6 +19,7 @@ def buatFolder(path):
     if not os.path.exists(dir):
         os.makedirs(dir)
 
+
 def detect():
     status.set("identifikasi wajah... tekan q untuk keluar")
     recognizer = cv2.face.LBPHFaceRecognizer_create()
@@ -29,8 +28,8 @@ def detect():
     cascadePath = "face-detect.xml"
     faceCascade = cv2.CascadeClassifier(cascadePath);
     font = cv2.FONT_HERSHEY_SIMPLEX
-    # cam = cv2.VideoCapture(0)
     cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    # cam = cv2.VideoCapture(0)
     while True:
         ret, im = cam.read()
         gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
@@ -39,15 +38,16 @@ def detect():
             cv2.rectangle(im, (x - 20, y - 20), (x + w + 20, y + h + 20), (0, 255, 0), 4)
             Id, confidence = recognizer.predict(gray[y:y + h, x:x + w])
 
-            file_coba = open("data_mahasiswa.txt", "r")
+            file_coba = open("biodata.txt", "r")
             semua = file_coba.read()
-            mahasiswa = semua.split('''\n''')
-            data_mhs = []
-            for siswa in mahasiswa:
-                data_mhs.append(siswa.split("."))
-            for mhs in data_mhs:
-                if int(mhs[0]) == Id:
-                    Id = (mhs[1]) + " {0:.2f}%".format(round(100 - confidence, 2))
+            mahasiswa = eval(semua)
+            for mhs in mahasiswa:
+                if int(mhs[1]) == Id:
+                    probalitas = format(round(100 - confidence, 2))
+                    if float(probalitas)>50.00:
+                        Id = (mhs[0] +" "+ probalitas)
+                    else:
+                        Id = "Wajah Tidak dikenal"
 
             cv2.rectangle(im, (x - 22, y - 90), (x + w + 22, y - 22), (0, 255, 0), -1)
             cv2.putText(im, str(Id), (x, y - 40), font, 1, (255, 255, 255), 3)
@@ -57,21 +57,24 @@ def detect():
     cam.release()
     cv2.destroyAllWindows()
     status.set("Pengenalan wajah siap di jalankan")
-
-
 def training():
     from PIL import Image
     recognizer = cv2.face.LBPHFaceRecognizer_create()
     detector = cv2.CascadeClassifier("face-detect.xml");
     def getImagesAndLabels(path):
+        # Ubah path sesuai lokasi penyimpanan gambar
         imagePaths = [os.path.join(path, f) for f in os.listdir(path)]
         faceSamples = []
         ids = []
+        mhs = []
+
         data = 0
         for imagePath in imagePaths:
             PIL_img = Image.open(imagePath).convert('L')
             img_numpy = np.array(PIL_img, 'uint8')
             id = int(os.path.split(imagePath)[-1].split(".")[1])
+            nama_id = os.path.split(imagePath)[1].split(".")[:2]
+
             faces = detector.detectMultiScale(img_numpy)
             for (x, y, w, h) in faces:
                 faceSamples.append(img_numpy[y:y + h, x:x + w])
@@ -80,9 +83,17 @@ def training():
             jml_gb = 100 / len(imagePaths)
             bb = "Training gambar {0:.0f}%".format(data * jml_gb)
             status.set(bb)
-            # sys.stdout.write('\r' + bb)
-            # time.sleep(0.0000001)
-        # sys.stdout.write('\r' + "Training gambar 100%")
+
+            if nama_id in mhs:
+                pass
+            else:
+                mhs.append(nama_id)
+
+        teks = str(mhs)
+        file_bio = open("biodata.txt", "w")
+        file_bio.write(teks)
+        file_bio.close()
+
         status.set("Training gambar 100%")
         time.sleep(0.4)
         status.set("Proses Training Selesai")
@@ -94,15 +105,9 @@ def training():
 def new():
     vid_cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     face_detector = cv2.CascadeClassifier('face-detect.xml')
-    # face_id = input("masukkan Id baru : ")
-    # mm = Tk().withdraw()
     face_id = simpledialog.askstring(title="Pelabelan Wajah", prompt="Masukkan Id :")
     face_name = simpledialog.askstring(title="Pelabelan Wajah", prompt="Masukkan nama :")
 
-    text = "\n" + face_id+"."+face_name
-    file_bio = open("data_mahasiswa.txt", "a")
-    file_bio.write(text)
-    file_bio.close()
 
     jumlah = 0
     buatFolder("dataset/")
@@ -118,8 +123,7 @@ def new():
             persen_proses = 100 / jumlah_gambar
             tampil = "Proses pengambilan gambar {0:.0f}%".format(jumlah * persen_proses)
             status.set(tampil)
-            # sys.stdout.write('\r' + str(tampil))
-            # time.sleep(0.0000000001)
+
             cv2.imshow('Pengambilan Data Wajah', image_frame)
         if cv2.waitKey(100) & 0xFF == ord('q'):
             break
@@ -129,8 +133,9 @@ def new():
     status.set("Proses pengambilan gambar selesai")
     vid_cam.release()
     cv2.destroyAllWindows()
+
+
 def openfile():
-    # master.filename = filedialog.askopenfilenames(initialdir="dataset/", title="Hapus file yang bukan wajah",filetypes=(("jpeg files", "*.jpg"), ("all files", "*.*")))
     os.startfile("dataset")
 #----------------------- MEMBUAT TOMBOL GAMBAR -----------------------#
 img_detect = PhotoImage(file="img/face_detec.png").subsample(15,15)
