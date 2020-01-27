@@ -3,8 +3,8 @@ import time
 from tkinter import filedialog, simpledialog
 import cv2
 import numpy as np
-
 from tkSimpleStatusbar import *
+import os, sys, subprocess
 
 master = Tk() # membuat window
 master.title("Face Recognition 1.2")
@@ -19,6 +19,13 @@ def buatFolder(path):
     if not os.path.exists(dir):
         os.makedirs(dir)
 
+def open_file(filename):
+    if sys.platform == "win32":
+        os.startfile(filename)
+    else:
+        opener ="open" if sys.platform == "darwin" else "xdg-open"
+        subprocess.call([opener, filename])
+
 def detect():
     status.set("identifikasi wajah... tekan q untuk keluar")
     recognizer = cv2.face.LBPHFaceRecognizer_create()
@@ -27,8 +34,7 @@ def detect():
     cascadePath = "face-detect.xml"
     faceCascade = cv2.CascadeClassifier(cascadePath);
     font = cv2.FONT_HERSHEY_SIMPLEX
-    # cam = cv2.VideoCapture(0)
-    cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    cam = cv2.VideoCapture(0)
     while True:
         ret, im = cam.read()
         gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
@@ -62,6 +68,7 @@ def training():
     recognizer = cv2.face.LBPHFaceRecognizer_create()
     detector = cv2.CascadeClassifier("face-detect.xml");
     def getImagesAndLabels():
+        # Ubah path sesuai lokasi penyimpanan gambar
         path = ("/home/pi/recognizer/dataset")
         imagePaths = [os.path.join(path, f) for f in os.listdir(path)]
         faceSamples = []
@@ -79,9 +86,7 @@ def training():
             jml_gb = 100 / len(imagePaths)
             bb = "Training gambar {0:.0f}%".format(data * jml_gb)
             status.set(bb)
-            # sys.stdout.write('\r' + bb)
-            # time.sleep(0.0000001)
-        # sys.stdout.write('\r' + "Training gambar 100%")
+
         status.set("Training gambar 100%")
         time.sleep(0.4)
         status.set("Proses Training Selesai")
@@ -91,7 +96,7 @@ def training():
     buatFolder('trainer/')
     recognizer.save('trainer/trainer.yml')
 def new():
-    vid_cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    vid_cam = cv2.VideoCapture(0)
     face_detector = cv2.CascadeClassifier('face-detect.xml')
     face_id = simpledialog.askstring(title="Pelabelan Wajah", prompt="Masukkan Id :")
     face_name = simpledialog.askstring(title="Pelabelan Wajah", prompt="Masukkan nama :")
@@ -115,8 +120,7 @@ def new():
             persen_proses = 100 / jumlah_gambar
             tampil = "Proses pengambilan gambar {0:.0f}%".format(jumlah * persen_proses)
             status.set(tampil)
-            # sys.stdout.write('\r' + str(tampil))
-            # time.sleep(0.0000000001)
+
             cv2.imshow('Pengambilan Data Wajah', image_frame)
         if cv2.waitKey(100) & 0xFF == ord('q'):
             break
@@ -127,8 +131,7 @@ def new():
     vid_cam.release()
     cv2.destroyAllWindows()
 def openfile():
-    master.filename = filedialog.askopenfilenames(initialdir="dataset/", title="Hapus file yang bukan wajah",filetypes=(("jpeg files", "*.jpg"), ("all files", "*.*")))
-
+    open_file("dataset")
 #----------------------- MEMBUAT TOMBOL GAMBAR -----------------------#
 img_detect = PhotoImage(file="img/face_detec.png").subsample(15,15)
 img_new = PhotoImage(file="img/add_data.png").subsample(15,15)

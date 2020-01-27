@@ -130,8 +130,8 @@ def new():
     vid_cam.release()
     cv2.destroyAllWindows()
 def openfile():
-    master.filename = filedialog.askopenfilenames(initialdir="dataset/", title="Hapus file yang bukan wajah",filetypes=(("jpeg files", "*.jpg"), ("all files", "*.*")))
-
+    # master.filename = filedialog.askopenfilenames(initialdir="dataset/", title="Hapus file yang bukan wajah",filetypes=(("jpeg files", "*.jpg"), ("all files", "*.*")))
+    os.startfile("dataset")
 #----------------------- MEMBUAT TOMBOL GAMBAR -----------------------#
 img_detect = PhotoImage(file="img/face_detec.png").subsample(15,15)
 img_new = PhotoImage(file="img/add_data.png").subsample(15,15)
