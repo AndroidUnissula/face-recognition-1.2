@@ -67,7 +67,7 @@ def training():
     from PIL import Image
     recognizer = cv2.face.LBPHFaceRecognizer_create()
     detector = cv2.CascadeClassifier("face-detect.xml");
-    def getImagesAndLabels(path):
+    def getImagesAndLabels():
         # Ubah path sesuai lokasi penyimpanan gambar
         path = ("/home/pi/recognizer/dataset")
         imagePaths = [os.path.join(path, f) for f in os.listdir(path)]
@@ -113,7 +113,7 @@ def new():
     vid_cam = cv2.VideoCapture(0)
     # vid_cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     face_detector = cv2.CascadeClassifier('face-detect.xml')
-    face_id = simpledialog.askstring(title="Pelabelan Wajah", prompt="Masukkan Id :")
+    face_id = simpledialog.askvnstring(title="Pelabelan Wajah", prompt="Masukkan Id :")
     face_name = simpledialog.askstring(title="Pelabelan Wajah", prompt="Masukkan nama :")
 
 
