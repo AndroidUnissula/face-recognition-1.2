@@ -183,12 +183,12 @@ def new():
             nama_penggilan = self.entry_nama_panggilan.get()
             nim = self.entry_nim.get()
 
-            db = mysql.connector.connect(
-                host="localhost",
-                user="root",
-                passwd="",
-                database="recognizer"
-            )
+            # db = mysql.connector.connect(
+            #     host="localhost",
+            #     user="root",
+            #     passwd="",
+            #     database="recognizer"
+            # )
             cursor = db.cursor()
             sql = "INSERT INTO mahasiswa (nm_lengkap, nm_panggilan,nim) VALUES (%s, %s, %s)"
             values = [(nama_lengkap, nama_penggilan, nim)]
