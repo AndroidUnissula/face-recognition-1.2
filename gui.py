@@ -9,6 +9,7 @@ import mysql.connector
 import datetime
 
 
+
 db = mysql.connector.connect(
     host="localhost",
     user="root",
