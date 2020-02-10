@@ -12,8 +12,8 @@ import datetime
 
 db = mysql.connector.connect(
     host="localhost",
-    user="root",
-    passwd="",
+    user="admin",
+    passwd="admin123",
     database="recognizer"
 )
 
@@ -46,7 +46,7 @@ def detect():
     faceCascade = cv2.CascadeClassifier(cascadePath);
     font = cv2.FONT_HERSHEY_SIMPLEX
     # TODO 3 : Menentukan Kamera yang di pakai
-    cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    cam = cv2.VideoCapture(0)
     # Untuk raspberry pi
     # cam = cv2.VideoCapture(0)
     while True:
@@ -69,7 +69,7 @@ def detect():
                 if int(mhs[1]) == Id:
                     probalitas = format(round(100 - confidence, 2))
                     # TODO 4 : Menentukan nilai batas minimal / threshold tingkat kemiripan
-                    if float(probalitas) > 30.00:
+                    if float(probalitas) > 20.00:
                         Id = (mhs[0] + " " + probalitas)
                         cursor = db.cursor()
                         sql3 = "SELECT * FROM mahasiswa"
@@ -188,12 +188,6 @@ def new():
             nama_penggilan = self.entry_nama_panggilan.get()
             nim = self.entry_nim.get()
 
-            # db = mysql.connector.connect(
-            #     host="localhost",
-            #     user="root",
-            #     passwd="",
-            #     database="recognizer"
-            # )
             cursor = db.cursor()
             sql = "INSERT INTO mahasiswa (nm_lengkap, nm_panggilan,nim) VALUES (%s, %s, %s)"
             values = [(nama_lengkap, nama_penggilan, nim)]
@@ -215,7 +209,7 @@ def new():
                 last_id = (data[0])
 
             # TODO 3 : Menentukan kamera yang akan di pakai
-            vid_cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            vid_cam = cv2.VideoCapture(0)
             # Untuk raspberry Pi
             # vid_cam = cv2.VideoCapture(0)
             face_detector = cv2.CascadeClassifier('face-detect.xml')

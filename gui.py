@@ -12,8 +12,8 @@ import datetime
 
 db = mysql.connector.connect(
     host="localhost",
-    user="root",
-    passwd="",
+    user="admin",
+    passwd="admin123",
     database="recognizer"
 )
 
