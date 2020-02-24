@@ -7,7 +7,8 @@ from tkSimpleStatusbar import *
 import os, sys, subprocess
 import mysql.connector
 import datetime
-
+import playsound
+from gtts import gTTS
 
 
 db = mysql.connector.connect(
@@ -46,9 +47,9 @@ def detect():
     faceCascade = cv2.CascadeClassifier(cascadePath);
     font = cv2.FONT_HERSHEY_SIMPLEX
     # TODO 3 : Menentukan Kamera yang di pakai
-    cam = cv2.VideoCapture(0)
+    # cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     # Untuk raspberry pi
-    # cam = cv2.VideoCapture(0)
+    cam = cv2.VideoCapture(0)
     while True:
         ret, im = cam.read()
         gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
@@ -69,7 +70,7 @@ def detect():
                 if int(mhs[1]) == Id:
                     probalitas = format(round(100 - confidence, 2))
                     # TODO 4 : Menentukan nilai batas minimal / threshold tingkat kemiripan
-                    if float(probalitas) > 20.00:
+                    if float(probalitas) > 50.00:
                         Id = (mhs[0] + " " + probalitas)
                         cursor = db.cursor()
                         sql3 = "SELECT * FROM mahasiswa"
@@ -78,6 +79,7 @@ def detect():
                         for data in result:
                             if mhs[0] == (data[2]):
                                 nm_leng = data[1]
+                                nm_pang = data[2]
                                 nim = data[3]
                         sql_select = "SELECT * FROM kedatangan"
                         cursor.execute(sql_select)
@@ -86,7 +88,6 @@ def detect():
                             kumpulan_waktu.append(str(datetime.datetime.date(data[3])))
                             kumpulan_nim.append(data[2])
                         db.commit()
-
                         if nim in kumpulan_nim and str(tgl_sekarang) in kumpulan_waktu:
                             pass
                         else:
@@ -96,12 +97,23 @@ def detect():
                             db.commit()
                             print("{} data ditambahkan".format(cursor.rowcount))
 
+                            tulisan = ("Selamat datang " + nm_pang)
+                            print(tulisan)
+                            bahasa = 'id'
+                            suara = gTTS(text=tulisan, lang=bahasa, slow=False)
+                            suara.save("suara.mp3")
+                            # os.system("start output.mp3")
+
+                            playsound.playsound('suara.mp3', True)
+
 
                     else:
                         Id = "Wajah Tidak dikenal"
+                        cv2.rectangle(im, (x - 20, y - 20), (x + w + 20, y + h + 20), (0, 0, 255), 4)
 
             cv2.rectangle(im, (x - 22, y - 90), (x + w + 22, y - 22), (0, 255, 0), -1)
             cv2.putText(im, str(Id), (x, y - 40), font, 1, (255, 255, 255), 3)
+
         cv2.imshow('Pengujian Pengenalan Wajah', im)
         if cv2.waitKey(10) & 0xFF == ord('q'):
             break
@@ -242,9 +254,10 @@ def new():
                     break
             time.sleep(0.5)
             status.set("Proses pengambilan gambar selesai")
+
             vid_cam.release()
             cv2.destroyAllWindows()
-
+            playsound.playsound('selesai.mp3', True)
     root = Tk()
     root.title("Input data")
     root.resizable(0, 0)  # me-non aktifkan maximize

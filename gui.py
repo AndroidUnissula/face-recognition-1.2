@@ -7,13 +7,19 @@ from tkSimpleStatusbar import *
 import os, sys, subprocess
 import mysql.connector
 import datetime
-
-
+import playsound
+from gtts import gTTS
+# hh = ("Pengambilan gambar telah selesai")
+# bahasa = 'id'
+# suara = gTTS(text=hh, lang=bahasa, slow=False)
+# suara.save("selesai.mp3")
+# # os.system("start output.mp3")
+# playsound.playsound('selesai.mp3', True)
 
 db = mysql.connector.connect(
     host="localhost",
-    user="admin",
-    passwd="admin123",
+    user="root",
+    passwd="",
     database="recognizer"
 )
 
@@ -22,6 +28,8 @@ master.title("Face Recognition 1.2")
 master.resizable(0,0) # me-non aktifkan maximize
 # Hilanggkan Icon untuk raspberry pi
 master.iconbitmap("icon/icon.ico")
+
+
 
 #------------------ MEMBUAT STATUS BAR DI MULAI PROGRAM ------------------#
 status = StatusBar(master)
@@ -65,7 +73,7 @@ def detect():
                 if int(mhs[1]) == Id:
                     probalitas = format(round(100 - confidence, 2))
                     # TODO 4 : Menentukan nilai batas minimal / threshold tingkat kemiripan
-                    if float(probalitas)>30.00:
+                    if float(probalitas)>50.00:
                         Id = (mhs[0] +" "+ probalitas)
                         cursor = db.cursor()
                         sql3 = "SELECT * FROM mahasiswa"
@@ -74,6 +82,7 @@ def detect():
                         for data in result:
                             if mhs[0] == (data[2]):
                                 nm_leng = data[1]
+                                nm_pang = data[2]
                                 nim = data[3]
                         sql_select = "SELECT * FROM kedatangan"
                         cursor.execute(sql_select)
@@ -82,7 +91,6 @@ def detect():
                             kumpulan_waktu.append(str(datetime.datetime.date(data[3])))
                             kumpulan_nim.append(data[2])
                         db.commit()
-
                         if nim in kumpulan_nim and str(tgl_sekarang) in kumpulan_waktu:
                             pass
                         else:
@@ -92,9 +100,20 @@ def detect():
                             db.commit()
                             print("{} data ditambahkan".format(cursor.rowcount))
 
+                            tulisan = ("Selamat datang " + nm_pang)
+                            print(tulisan)
+                            bahasa = 'id'
+                            suara = gTTS(text=tulisan, lang=bahasa, slow=False)
+                            suara.save("suara.mp3")
+                            # os.system("start output.mp3")
+
+                            playsound.playsound('suara.mp3', True)
+
 
                     else:
                         Id = "Wajah Tidak dikenal"
+                        cv2.rectangle(im, (x - 20, y - 20), (x + w + 20, y + h + 20), (0, 0, 255), 4)
+
 
 
             cv2.rectangle(im, (x - 22, y - 90), (x + w + 22, y - 22), (0, 255, 0), -1)
@@ -243,6 +262,7 @@ def new():
                     break
             time.sleep(0.5)
             status.set("Proses pengambilan gambar selesai")
+            playsound.playsound('selesai.mp3', True)
             vid_cam.release()
             cv2.destroyAllWindows()
 
