@@ -68,19 +68,19 @@ def detect():
 
             file_coba = open("biodata.txt", "r")
             semua = file_coba.read()
-            mahasiswa = eval(semua)
-            for mhs in mahasiswa:
-                if int(mhs[1]) == Id:
+            pengunjung = eval(semua)
+            for pgj in pengunjung:
+                if int(pgj[1]) == Id:
                     probalitas = format(round(100 - confidence, 2))
                     # TODO 4 : Menentukan nilai batas minimal / threshold tingkat kemiripan
                     if float(probalitas)>50.00:
-                        Id = (mhs[0] +" "+ probalitas)
+                        Id = (pgj[0] +" "+ probalitas)
                         cursor = db.cursor()
-                        sql3 = "SELECT * FROM mahasiswa"
+                        sql3 = "SELECT * FROM pengunjung"
                         cursor.execute(sql3)
                         result = cursor.fetchall()
                         for data in result:
-                            if mhs[0] == (data[2]):
+                            if pgj[0] == (data[2]):
                                 nm_leng = data[1]
                                 nm_pang = data[2]
                                 nim = data[3]
@@ -109,7 +109,6 @@ def detect():
 
                             playsound.playsound('suara.mp3', True)
 
-
                     else:
                         Id = "Wajah Tidak dikenal"
                         cv2.rectangle(im, (x - 20, y - 20), (x + w + 20, y + h + 20), (0, 0, 255), 4)
@@ -118,7 +117,7 @@ def detect():
 
             cv2.rectangle(im, (x - 22, y - 90), (x + w + 22, y - 22), (0, 255, 0), -1)
             cv2.putText(im, str(Id), (x, y - 40), font, 1, (255, 255, 255), 3)
-        cv2.imshow('Pengujian Pengenalan Wajah', im)
+        cv2.imshow('Sistem Pengenalan Wajah', im)
         if cv2.waitKey(10) & 0xFF == ord('q'):
             break
     cam.release()
@@ -181,8 +180,11 @@ def new():
             self.label_nama_panggilan = Label(self, text="Nama Panggilan :")
             self.entry_nama_panggilan = Entry(self)
 
-            self.label_nim = Label(self, text="Nim   :")
+            self.label_nim = Label(self, text="NIM/NIK   :")
             self.entry_nim = Entry(self)
+
+            self.label_status = Label(self, text="1=mahasiswa/2=dosen:")
+            self.entry_status = Entry(self)
 
             # Tata Letak
             self.label_nama_lengkap.grid(row=0, sticky=E)
@@ -191,6 +193,8 @@ def new():
             self.entry_nama_panggilan.grid(row=1, column=1)
             self.label_nim.grid(row=2, sticky=E)
             self.entry_nim.grid(row=2, column=1)
+            self.label_status.grid(row=3, sticky=E)
+            self.entry_status.grid(row=3, column=1)
 
             self.logbtn = Button(self, text="Kirim Data Baru", command=self.kirimdata)
             self.logbtn.grid(columnspan=2)
@@ -201,6 +205,7 @@ def new():
             nama_lengkap = self.entry_nama_lengkap.get()
             nama_penggilan = self.entry_nama_panggilan.get()
             nim = self.entry_nim.get()
+            status1 = self.entry_status.get()
 
             # db = mysql.connector.connect(
             #     host="localhost",
@@ -209,8 +214,8 @@ def new():
             #     database="recognizer"
             # )
             cursor = db.cursor()
-            sql = "INSERT INTO mahasiswa (nm_lengkap, nm_panggilan,nim) VALUES (%s, %s, %s)"
-            values = [(nama_lengkap, nama_penggilan, nim)]
+            sql = "INSERT INTO pengunjung (nm_lengkap, nm_panggilan,nim,status) VALUES (%s, %s, %s, %s)"
+            values = [(nama_lengkap, nama_penggilan, nim, status1)]
 
             for val in values:
                 cursor.execute(sql, val)
@@ -220,7 +225,7 @@ def new():
             root.destroy()
 
             cursor = db.cursor()
-            sql2 = "SELECT * FROM mahasiswa"
+            sql2 = "SELECT * FROM pengunjung"
             cursor.execute(sql2)
 
             result = cursor.fetchall()

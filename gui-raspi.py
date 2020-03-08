@@ -11,10 +11,11 @@ import playsound
 from gtts import gTTS
 
 
+#--------------------------- CONNECT DATABASE ---------------------------#
 db = mysql.connector.connect(
     host="localhost",
-    user="admin",
-    passwd="admin123",
+    user="root",
+    passwd="",
     database="recognizer"
 )
 
@@ -26,11 +27,15 @@ master.resizable(0,0) # me-non aktifkan maximize
 status = StatusBar(master)
 status.pack(side=BOTTOM, fill=X)
 status.set("selamat datang...")
+
+
+#------------- MENJALANKAN PATH DAN MEMBUATNYA JIKA TIDAK ADA -------------#
 def buatFolder(path):
     dir = os.path.dirname(path)
     if not os.path.exists(dir):
         os.makedirs(dir)
 
+#-------------------- MEMBUAT FUNGSI UNTUK MEMBUKA FILE --------------------#
 def open_file(filename):
     if sys.platform == "win32":
         os.startfile(filename)
@@ -38,9 +43,9 @@ def open_file(filename):
         opener ="open" if sys.platform == "darwin" else "xdg-open"
         subprocess.call([opener, filename])
 
-def detect():
+def detect(): #FUNGSI KETIKA TOMBOL DETECT DI TEKAN
     status.set("identifikasi wajah... tekan q untuk keluar")
-    recognizer = cv2.face.LBPHFaceRecognizer_create()
+    recognizer = cv2.face.LBPHFaceRecognizer_create() # membuat variable untuk menjalanlan algoritma LBPH
     buatFolder("trainer/")
     recognizer.read('trainer/trainer.yml')
     cascadePath = "face-detect.xml"
@@ -53,7 +58,7 @@ def detect():
     while True:
         ret, im = cam.read()
         gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-        # TODO 1 : Menentukan variable viola Jones
+        # TODO 1 : Menentukan variable viola Jones (scale factor & KNN)
         wajah = faceCascade.detectMultiScale(gray, 1.2, 5)
         kumpulan_nim = []
         kumpulan_waktu = []
@@ -65,22 +70,28 @@ def detect():
 
             file_coba = open("biodata.txt", "r")
             semua = file_coba.read()
-            mahasiswa = eval(semua)
-            for mhs in mahasiswa:
-                if int(mhs[1]) == Id:
+            pengunjung = eval(semua)
+            for pgj in pengunjung:
+                if int(pgj[1]) == Id:
                     probalitas = format(round(100 - confidence, 2))
                     # TODO 4 : Menentukan nilai batas minimal / threshold tingkat kemiripan
                     if float(probalitas) > 50.00:
-                        Id = (mhs[0] + " " + probalitas)
+                        Id = (pgj[0] + " " + probalitas)
                         cursor = db.cursor()
-                        sql3 = "SELECT * FROM mahasiswa"
+                        sql3 = "SELECT * FROM pengunjung"
                         cursor.execute(sql3)
                         result = cursor.fetchall()
                         for data in result:
-                            if mhs[0] == (data[2]):
+                            if pgj[0] == (data[2]):
                                 nm_leng = data[1]
                                 nm_pang = data[2]
                                 nim = data[3]
+                                if data[4] ==1:
+                                    status1="Mahasiswa"
+                                elif data[4]==2:
+                                    status1="Dosen"
+                                else:
+                                    status1="Pengunjung"
                         sql_select = "SELECT * FROM kedatangan"
                         cursor.execute(sql_select)
                         results = cursor.fetchall()
@@ -91,8 +102,8 @@ def detect():
                         if nim in kumpulan_nim and str(tgl_sekarang) in kumpulan_waktu:
                             pass
                         else:
-                            vall = (nm_leng, nim)
-                            sqll = "INSERT INTO kedatangan (nama, nim) VALUES (%s, %s)"
+                            vall = (nm_leng, nim, status1)
+                            sqll = "INSERT INTO kedatangan (nama, nim, status) VALUES (%s, %s, %s)"
                             cursor.execute(sqll, vall)
                             db.commit()
                             print("{} data ditambahkan".format(cursor.rowcount))
@@ -105,8 +116,6 @@ def detect():
                             # os.system("start output.mp3")
 
                             playsound.playsound('suara.mp3', True)
-
-
                     else:
                         Id = "Wajah Tidak dikenal"
                         cv2.rectangle(im, (x - 20, y - 20), (x + w + 20, y + h + 20), (0, 0, 255), 4)
@@ -114,7 +123,7 @@ def detect():
             cv2.rectangle(im, (x - 22, y - 90), (x + w + 22, y - 22), (0, 255, 0), -1)
             cv2.putText(im, str(Id), (x, y - 40), font, 1, (255, 255, 255), 3)
 
-        cv2.imshow('Pengujian Pengenalan Wajah', im)
+        cv2.imshow('Sistem Pengenalan Wajah', im)
         if cv2.waitKey(10) & 0xFF == ord('q'):
             break
     cam.release()
@@ -179,8 +188,11 @@ def new():
             self.label_nama_panggilan = Label(self, text="Nama Panggilan :")
             self.entry_nama_panggilan = Entry(self)
 
-            self.label_nim = Label(self, text="Nim   :")
+            self.label_nim = Label(self, text="NIM/NIK   :")
             self.entry_nim = Entry(self)
+
+            self.label_status = Label(self, text="1=mahasiswa/2=dosen:")
+            self.entry_status = Entry(self)
 
             # Tata Letak
             self.label_nama_lengkap.grid(row=0, sticky=E)
@@ -189,6 +201,8 @@ def new():
             self.entry_nama_panggilan.grid(row=1, column=1)
             self.label_nim.grid(row=2, sticky=E)
             self.entry_nim.grid(row=2, column=1)
+            self.label_status.grid(row=3, sticky=E)
+            self.entry_status.grid(row=3, column=1)
 
             self.logbtn = Button(self, text="Kirim Data Baru", command=self.kirimdata)
             self.logbtn.grid(columnspan=2)
@@ -199,10 +213,17 @@ def new():
             nama_lengkap = self.entry_nama_lengkap.get()
             nama_penggilan = self.entry_nama_panggilan.get()
             nim = self.entry_nim.get()
+            status1 = self.entry_status.get()
 
+            # db = mysql.connector.connect(
+            #     host="localhost",
+            #     user="root",
+            #     passwd="",
+            #     database="recognizer"
+            # )
             cursor = db.cursor()
-            sql = "INSERT INTO mahasiswa (nm_lengkap, nm_panggilan,nim) VALUES (%s, %s, %s)"
-            values = [(nama_lengkap, nama_penggilan, nim)]
+            sql = "INSERT INTO pengunjung (nm_lengkap, nm_panggilan,nim,status) VALUES (%s, %s, %s, %s)"
+            values = [(nama_lengkap, nama_penggilan, nim, status1)]
 
             for val in values:
                 cursor.execute(sql, val)
@@ -212,7 +233,7 @@ def new():
             root.destroy()
 
             cursor = db.cursor()
-            sql2 = "SELECT * FROM mahasiswa"
+            sql2 = "SELECT * FROM pengunjung"
             cursor.execute(sql2)
 
             result = cursor.fetchall()
@@ -221,7 +242,7 @@ def new():
                 last_id = (data[0])
 
             # TODO 3 : Menentukan kamera yang akan di pakai
-            vid_cam = cv2.VideoCapture(0)
+            vid_cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
             # Untuk raspberry Pi
             # vid_cam = cv2.VideoCapture(0)
             face_detector = cv2.CascadeClassifier('face-detect.xml')
@@ -254,10 +275,10 @@ def new():
                     break
             time.sleep(0.5)
             status.set("Proses pengambilan gambar selesai")
-
+            playsound.playsound('selesai.mp3', True)
             vid_cam.release()
             cv2.destroyAllWindows()
-            playsound.playsound('selesai.mp3', True)
+
     root = Tk()
     root.title("Input data")
     root.resizable(0, 0)  # me-non aktifkan maximize
