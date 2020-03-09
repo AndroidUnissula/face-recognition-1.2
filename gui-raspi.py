@@ -115,7 +115,8 @@ def detect(): #FUNGSI KETIKA TOMBOL DETECT DI TEKAN
                             suara.save("suara.mp3")
                             # os.system("start output.mp3")
 
-                            playsound.playsound('suara.mp3', True)
+                            # playsound.playsound('suara.mp3', True)
+                            os.system("omxplayer -o local suara.mp3")
                     else:
                         Id = "Wajah Tidak dikenal"
                         cv2.rectangle(im, (x - 20, y - 20), (x + w + 20, y + h + 20), (0, 0, 255), 4)
@@ -177,6 +178,7 @@ def training():
     recognizer.train(faces, np.array(ids))
     buatFolder('trainer/')
     recognizer.save('trainer/trainer.yml')
+    os.system("omxplayer -o local training.mp3")
 def new():
     class LoginFrame(Frame):
         def __init__(self, master):
@@ -215,12 +217,6 @@ def new():
             nim = self.entry_nim.get()
             status1 = self.entry_status.get()
 
-            # db = mysql.connector.connect(
-            #     host="localhost",
-            #     user="root",
-            #     passwd="",
-            #     database="recognizer"
-            # )
             cursor = db.cursor()
             sql = "INSERT INTO pengunjung (nm_lengkap, nm_panggilan,nim,status) VALUES (%s, %s, %s, %s)"
             values = [(nama_lengkap, nama_penggilan, nim, status1)]
@@ -242,7 +238,7 @@ def new():
                 last_id = (data[0])
 
             # TODO 3 : Menentukan kamera yang akan di pakai
-            vid_cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            vid_cam = cv2.VideoCapture(0)
             # Untuk raspberry Pi
             # vid_cam = cv2.VideoCapture(0)
             face_detector = cv2.CascadeClassifier('face-detect.xml')
@@ -275,7 +271,8 @@ def new():
                     break
             time.sleep(0.5)
             status.set("Proses pengambilan gambar selesai")
-            playsound.playsound('selesai.mp3', True)
+            os.system("omxplayer -o local selesai.mp3")
+            # playsound.playsound('selesai.mp3', True)
             vid_cam.release()
             cv2.destroyAllWindows()
 
@@ -286,6 +283,7 @@ def new():
     root.mainloop()
 def openfile():
     open_file("dataset")
+    os.system("omxplayer -o local hapus.mp3")
 #----------------------- MEMBUAT TOMBOL GAMBAR -----------------------#
 img_detect = PhotoImage(file="img/face_detec.png").subsample(15,15)
 img_new = PhotoImage(file="img/add_data.png").subsample(15,15)

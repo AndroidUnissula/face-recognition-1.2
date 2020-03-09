@@ -170,6 +170,7 @@ def training():
     buatFolder('trainer/')
     recognizer.save('trainer/trainer.yml')
     playsound.playsound('training.mp3', True)
+    # os.system("omxplayer -o local training.mp3")
 def new():
     class LoginFrame(Frame):
         def __init__(self, master):
@@ -208,12 +209,6 @@ def new():
             nim = self.entry_nim.get()
             status1 = self.entry_status.get()
 
-            # db = mysql.connector.connect(
-            #     host="localhost",
-            #     user="root",
-            #     passwd="",
-            #     database="recognizer"
-            # )
             cursor = db.cursor()
             sql = "INSERT INTO pengunjung (nm_lengkap, nm_panggilan,nim,status) VALUES (%s, %s, %s, %s)"
             values = [(nama_lengkap, nama_penggilan, nim, status1)]
@@ -269,6 +264,7 @@ def new():
             time.sleep(0.5)
             status.set("Proses pengambilan gambar selesai")
             playsound.playsound('selesai.mp3', True)
+            # os.system("omxplayer -o local selesai.mp3")
             vid_cam.release()
             cv2.destroyAllWindows()
 
@@ -280,6 +276,7 @@ def new():
 def openfile():
     os.startfile("dataset")
     playsound.playsound('hapus.mp3', True)
+    # os.system("omxplayer -o local hapus.mp3")
 
 #----------------------- MEMBUAT TOMBOL GAMBAR -----------------------#
 img_detect = PhotoImage(file="img/face_detec.png").subsample(15,15)
