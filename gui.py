@@ -9,12 +9,12 @@ import mysql.connector
 import datetime
 import playsound
 from gtts import gTTS
-# hh = ("Pengambilan gambar telah selesai")
+# hh = ("cari dan hapus gambar bukan wajah")
 # bahasa = 'id'
 # suara = gTTS(text=hh, lang=bahasa, slow=False)
-# suara.save("selesai.mp3")
+# suara.save("hapus.mp3")
 # # os.system("start output.mp3")
-# playsound.playsound('selesai.mp3', True)
+# playsound.playsound('hapus.mp3', True)
 
 db = mysql.connector.connect(
     host="localhost",
@@ -169,6 +169,7 @@ def training():
     recognizer.train(faces, np.array(ids))
     buatFolder('trainer/')
     recognizer.save('trainer/trainer.yml')
+    playsound.playsound('training.mp3', True)
 def new():
     class LoginFrame(Frame):
         def __init__(self, master):
@@ -278,6 +279,8 @@ def new():
     root.mainloop()
 def openfile():
     os.startfile("dataset")
+    playsound.playsound('hapus.mp3', True)
+
 #----------------------- MEMBUAT TOMBOL GAMBAR -----------------------#
 img_detect = PhotoImage(file="img/face_detec.png").subsample(15,15)
 img_new = PhotoImage(file="img/add_data.png").subsample(15,15)

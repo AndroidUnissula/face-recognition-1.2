@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.7.0
+-- version 5.0.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: 07 Feb 2020 pada 09.26
--- Versi Server: 10.1.25-MariaDB
--- PHP Version: 7.1.7
+-- Waktu pembuatan: 05 Mar 2020 pada 12.18
+-- Versi server: 10.4.11-MariaDB
+-- Versi PHP: 7.2.27
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -32,68 +32,66 @@ CREATE TABLE `kedatangan` (
   `id` int(11) NOT NULL,
   `nama` varchar(50) NOT NULL,
   `nim` bigint(12) NOT NULL,
-  `waktu` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `waktu` timestamp NOT NULL DEFAULT current_timestamp(),
+  `status` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Dumping data untuk tabel `kedatangan`
---
-
-INSERT INTO `kedatangan` (`id`, `nama`, `nim`, `waktu`) VALUES
-(1, 'M Rahman', 32601601052, '2020-02-07 08:21:54'),
-(2, 'Muhammad Ni\'am', 32601400289, '2020-02-07 08:24:18');
 
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `mahasiswa`
+-- Struktur dari tabel `pengunjung`
 --
 
-CREATE TABLE `mahasiswa` (
+CREATE TABLE `pengunjung` (
   `id_mhs` int(11) NOT NULL,
   `nm_lengkap` varchar(50) NOT NULL,
   `nm_panggilan` varchar(20) NOT NULL,
-  `nim` bigint(20) NOT NULL
+  `nim` bigint(20) NOT NULL,
+  `status` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data untuk tabel `mahasiswa`
+-- Dumping data untuk tabel `pengunjung`
 --
 
-INSERT INTO `mahasiswa` (`id_mhs`, `nm_lengkap`, `nm_panggilan`, `nim`) VALUES
-(1, 'M Rahman', 'Rahman', 32601601052),
-(2, 'Muhammad Ni\'am', 'Ni\'am', 32601400289);
+INSERT INTO `pengunjung` (`id_mhs`, `nm_lengkap`, `nm_panggilan`, `nim`, `status`) VALUES
+(1, 'Muhammad Ni\'am', 'Ni\'am', 32601400829, 1),
+(2, 'Muhammad Tajudin', 'Tajudin', 32601400829, 1),
+(3, 'Andi Riyansah', 'Andi', 92439756548, 2),
+(4, 'Sri Mulyono', 'sri', 394587349, 2);
 
 --
 -- Indexes for dumped tables
 --
 
 --
--- Indexes for table `kedatangan`
+-- Indeks untuk tabel `kedatangan`
 --
 ALTER TABLE `kedatangan`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `mahasiswa`
+-- Indeks untuk tabel `pengunjung`
 --
-ALTER TABLE `mahasiswa`
+ALTER TABLE `pengunjung`
   ADD PRIMARY KEY (`id_mhs`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT untuk tabel yang dibuang
 --
 
 --
--- AUTO_INCREMENT for table `kedatangan`
+-- AUTO_INCREMENT untuk tabel `kedatangan`
 --
 ALTER TABLE `kedatangan`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
--- AUTO_INCREMENT for table `mahasiswa`
+-- AUTO_INCREMENT untuk tabel `pengunjung`
 --
-ALTER TABLE `mahasiswa`
-  MODIFY `id_mhs` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;COMMIT;
+ALTER TABLE `pengunjung`
+  MODIFY `id_mhs` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
