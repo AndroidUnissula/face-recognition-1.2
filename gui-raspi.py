@@ -1,4 +1,3 @@
-import os
 import time
 from tkinter import filedialog, simpledialog
 import cv2
@@ -7,6 +6,7 @@ from tkSimpleStatusbar import *
 import os, sys, subprocess
 import mysql.connector
 import datetime
+# untuk di windows
 import playsound
 from gtts import gTTS
 
@@ -78,8 +78,9 @@ def detect(): #FUNGSI KETIKA TOMBOL DETECT DI TEKAN
                     if float(probalitas) > 50.00:
                         Id = (pgj[0] + " " + probalitas)
                         cursor = db.cursor()
-                        sql3 = "SELECT * FROM pengunjung"
-                        cursor.execute(sql3)
+                        idd = (pgj[1],)
+                        sql3 = "SELECT * FROM pengunjung WHERE id_mhs = %s"
+                        cursor.execute(sql3, idd)
                         result = cursor.fetchall()
                         for data in result:
                             if pgj[0] == (data[2]):
@@ -99,7 +100,8 @@ def detect(): #FUNGSI KETIKA TOMBOL DETECT DI TEKAN
                             kumpulan_waktu.append(str(datetime.datetime.date(data[3])))
                             kumpulan_nim.append(data[2])
                         db.commit()
-                        if nim in kumpulan_nim and str(tgl_sekarang) in kumpulan_waktu:
+                        # if nim in kumpulan_nim and str(tgl_sekarang) in kumpulan_waktu:
+                        if str(tgl_sekarang) in kumpulan_waktu:
                             pass
                         else:
                             vall = (nm_leng, nim, status1)
@@ -135,9 +137,9 @@ def training():
     recognizer = cv2.face.LBPHFaceRecognizer_create()
     detector = cv2.CascadeClassifier("face-detect.xml");
 
-    def getImagesAndLabels():
+    def getImagesAndLabels(path):
         # Ubah path sesuai lokasi penyimpanan gambar untuk raspberry pi
-        path = ("/home/pi/recognizer/dataset")
+        # path = ("/home/pi/recognizer/dataset")
         imagePaths = [os.path.join(path, f) for f in os.listdir(path)]
         faceSamples = []
         ids = []
@@ -174,7 +176,7 @@ def training():
         status.set("Proses Training Selesai")
         return faceSamples, ids
 
-    faces, ids = getImagesAndLabels()
+    faces, ids = getImagesAndLabels("dataset")
     recognizer.train(faces, np.array(ids))
     buatFolder('trainer/')
     recognizer.save('trainer/trainer.yml')

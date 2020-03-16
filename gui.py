@@ -41,9 +41,9 @@ def buatFolder(path):
         os.makedirs(dir)
 
 
-def detect():
+def detect(): #FUNGSI KETIKA TOMBOL DETECT DI TEKAN
     status.set("identifikasi wajah... tekan q untuk keluar")
-    recognizer = cv2.face.LBPHFaceRecognizer_create()
+    recognizer = cv2.face.LBPHFaceRecognizer_create() # membuat variable untuk menjalanlan algoritma LBPH
     buatFolder("trainer/")
     recognizer.read('trainer/trainer.yml')
     cascadePath = "face-detect.xml"
@@ -56,10 +56,10 @@ def detect():
     while True:
         ret, im = cam.read()
         gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-        # TODO 1 : Menentukan variable viola Jones
+        # TODO 1 : Menentukan variable viola Jones (scale factor & KNN)
         wajah = faceCascade.detectMultiScale(gray, 1.2, 5)
-        kumpulan_nim=[]
-        kumpulan_waktu=[]
+        kumpulan_nim = []
+        kumpulan_waktu = []
         tgl_sekarang = datetime.datetime.date(datetime.datetime.today())
 
         for (x, y, w, h) in wajah:
@@ -73,17 +73,24 @@ def detect():
                 if int(pgj[1]) == Id:
                     probalitas = format(round(100 - confidence, 2))
                     # TODO 4 : Menentukan nilai batas minimal / threshold tingkat kemiripan
-                    if float(probalitas)>50.00:
-                        Id = (pgj[0] +" "+ probalitas)
+                    if float(probalitas) > 50.00:
+                        Id = (pgj[0] + " " + probalitas)
                         cursor = db.cursor()
-                        sql3 = "SELECT * FROM pengunjung"
-                        cursor.execute(sql3)
+                        idd = (pgj[1],)
+                        sql3 = "SELECT * FROM pengunjung WHERE id_mhs = %s"
+                        cursor.execute(sql3, idd)
                         result = cursor.fetchall()
                         for data in result:
                             if pgj[0] == (data[2]):
                                 nm_leng = data[1]
                                 nm_pang = data[2]
                                 nim = data[3]
+                                if data[4] ==1:
+                                    status1="Mahasiswa"
+                                elif data[4]==2:
+                                    status1="Dosen"
+                                else:
+                                    status1="Pengunjung"
                         sql_select = "SELECT * FROM kedatangan"
                         cursor.execute(sql_select)
                         results = cursor.fetchall()
@@ -91,11 +98,12 @@ def detect():
                             kumpulan_waktu.append(str(datetime.datetime.date(data[3])))
                             kumpulan_nim.append(data[2])
                         db.commit()
-                        if nim in kumpulan_nim and str(tgl_sekarang) in kumpulan_waktu:
+                        # if nim in kumpulan_nim and str(tgl_sekarang) in kumpulan_waktu:
+                        if str(tgl_sekarang) in kumpulan_waktu:
                             pass
                         else:
-                            vall = (nm_leng, nim)
-                            sqll = "INSERT INTO kedatangan (nama, nim) VALUES (%s, %s)"
+                            vall = (nm_leng, nim, status1)
+                            sqll = "INSERT INTO kedatangan (nama, nim, status) VALUES (%s, %s, %s)"
                             cursor.execute(sqll, vall)
                             db.commit()
                             print("{} data ditambahkan".format(cursor.rowcount))
@@ -108,21 +116,21 @@ def detect():
                             # os.system("start output.mp3")
 
                             playsound.playsound('suara.mp3', True)
-
+                            # os.system("omxplayer -o local suara.mp3")
                     else:
                         Id = "Wajah Tidak dikenal"
                         cv2.rectangle(im, (x - 20, y - 20), (x + w + 20, y + h + 20), (0, 0, 255), 4)
 
-
-
             cv2.rectangle(im, (x - 22, y - 90), (x + w + 22, y - 22), (0, 255, 0), -1)
             cv2.putText(im, str(Id), (x, y - 40), font, 1, (255, 255, 255), 3)
+
         cv2.imshow('Sistem Pengenalan Wajah', im)
         if cv2.waitKey(10) & 0xFF == ord('q'):
             break
     cam.release()
     cv2.destroyAllWindows()
     status.set("Pengenalan wajah siap di jalankan")
+
 def training():
     from PIL import Image
     recognizer = cv2.face.LBPHFaceRecognizer_create()
